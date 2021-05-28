@@ -12,8 +12,6 @@ import {Component} from 'vue-property-decorator';
 @Component
 export default class Types extends Vue {
   type = '-';
-  helloMsg = 'hello, ' + this.xxx;
-
   selectType(type: string) {
     if (type !== '-' && type !== '+') {
       throw new Error('type is unknown');
