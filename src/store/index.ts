@@ -13,8 +13,8 @@ type RootState = {
 
 const store = new Vuex.Store({
   state: {
-    recordList: [] as RecordItem[],
-    tagList: [] as Tag[],
+    recordList: [],
+    tagList: [],
     currentTag: undefined
   } as RootState,
 
