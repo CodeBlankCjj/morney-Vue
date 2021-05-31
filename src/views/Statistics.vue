@@ -2,6 +2,20 @@
   <Layout>
     <Tabs :data-source="recordTypeList" :value.sync="type" class-prefix="type"/>
     <Tabs :data-source="intervalList" :value.sync="interval" class-prefix="interval"/>
+    <ol>
+      <li v-for="(group,index) in result" :key="index">
+        <h3 class="title">{{ group.title }}</h3>
+        <ol>
+          <li v-for="item in group.items" :key="item.id"
+              class="record"
+          >
+            <span>{{ tagString(item.tags) }}</span>
+            <span class="notes">{{ item.notes }}</span>
+            <span>￥{{ item.amount }}</span>
+          </li>
+        </ol>
+      </li>
+    </ol>
   </Layout>
 </template>
 
@@ -16,6 +30,33 @@ import recordTypeList from '@/constants/recordTypeList';
   components: {Tabs},
 })
 export default class Statistics extends Vue {
+  tagString(tags: Tag[]) {
+    return tags.length === 0 ? '无' : tags.join(',');
+  }
+
+  get recordList() {
+    return (this.$store.state as RootState).recordList;
+  }
+
+  get result() {
+    const {recordList} = this;
+
+    type Items = RecordItem[]
+    type HashTableValue = { title: string, items: Items }
+
+    const hashTable: { [key: string]: HashTableValue } = {};
+    for (let i = 0; i < recordList.length; i++) {
+      const [date, time] = recordList[i].createdAt!.split('T');
+      hashTable[date] = hashTable[date] || {title: date, items: []};
+      hashTable[date].items.push(recordList[i]);
+    }
+    return hashTable;
+  }
+
+  beforeCreate() {
+    this.$store.commit('fetchRecords');
+  }
+
   type = '-';
   interval = 'day';
   intervalList = intervalList;
@@ -24,6 +65,29 @@ export default class Statistics extends Vue {
 </script>
 
 <style scoped lang="scss">
+%item {
+  padding: 8px 16px;
+  line-height: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-content: center;
+}
+
+.title {
+  @extend %item;
+}
+
+.record {
+  @extend %item;
+  background: white;
+}
+
+.notes {
+  margin-right: auto;
+  margin-left: 16px;
+  color: #999;
+}
+
 ::v-deep {
   .type-tabs-item {
     background: white;
@@ -36,7 +100,8 @@ export default class Statistics extends Vue {
       }
     }
   }
-  .interval-tabs-item{
+
+  .interval-tabs-item {
     height: 48px;
   }
 }
